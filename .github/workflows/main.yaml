@@ -42,4 +42,4 @@ jobs:
           echo "I'm the third"
       - name: Previous job status
         run: |
-          echo ${{ job.status }}
+          echo ${{ needs.second_job.result }}
