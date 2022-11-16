@@ -42,23 +42,23 @@ jobs:
       - name: Previous job status
         run: |
           echo ${{ needs.second_job.result }}
-  should_be_skipped:
+  should_not_fail:
     runs-on: ubuntu-latest
     needs: second_job
-    if: ${{ 1 == 2 }}
+#    if: ${{ 1 == 2 }}
     steps:
-      - name: I am not skipping
+      - name: I am not failing
         run: |
-          echo "I am going rogue"
+          echo "I am doing well"
   fourth_job:
     runs-on: ubuntu-latest
     needs:
       - should_be_skipped
-    if: ${{ always() && needs.should_be_skipped.result == 'skipped' }}
+    if: ${{ always() && needs.should_not_fail.result != 'failed' }}
     steps:
       - name: I am the fourth
         run: |
-          echo "Running because previous was skipped"
+          echo "Running because previous not failing"
   should_fail:
     runs-on: ubuntu-latest
     needs: second_job
