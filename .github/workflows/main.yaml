@@ -27,4 +27,6 @@ jobs:
     steps:
       - name: Second-job-A
         run: |
-          echo "Second"
+          echo "Second
+      - name: Create annotation for build error
+        run: echo "::error file=app.js,line=1::Missing semicolon"
