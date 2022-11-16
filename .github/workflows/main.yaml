@@ -27,6 +27,13 @@ jobs:
     steps:
       - name: Second-job-A
         run: |
-          echo "Second
+          echo "Second"
       - name: Create annotation for build error
         run: echo "::error file=app.js,line=1::Missing semicolon"
+  third_job:
+    runs-on: ubuntu-latest
+    needs: second_job
+    steps:
+      - name: I am the third
+        run: |
+          echo "I'm the third"
