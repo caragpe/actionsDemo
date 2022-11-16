@@ -60,3 +60,22 @@ jobs:
       - name: I am the fourth
         run: |
           echo "Running because previous was skipped"
+  should_fail:
+    runs-on: ubuntu-latest
+    needs: second_job
+    if: ${{ 1 == 2 }}
+    steps:
+      - name: I am not skipping
+        run: |
+          echo "I am going rogue"
+          exit 1
+  fiftieth_job:
+    runs-on: ubuntu-latest
+    needs:
+      - second_job
+      - should_fail
+    if: ${{ always() && needs.should_fail.result == 'skipped' }}
+    steps:
+      - name: I am the fiftieth
+        run: |
+          echo "NOT Running because previous was NOT skipped"
