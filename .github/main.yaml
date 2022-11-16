@@ -1,0 +1,30 @@
+name: 'Test workflow'
+
+# **What it does**: Renders the content of every page and check all internal links.
+# **Why we have it**: To make sure all links connect correctly.
+# **Who does it impact**: Docs content.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  first_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: First-job-A
+        run: |
+          ls -al
+      - name: First-job-B
+        run: |
+          echo "Hello"
+  second_job:
+    runs-on: ubuntu-latest
+    needs: first_job
+    steps:
+      - name: Second-job-A
+        run: |
+          echo "Second"
