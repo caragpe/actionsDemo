@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - should_not_fail
-    if: ${{ needs.should_not_fail.result != 'failure' }}
+    if: ${{ always() && needs.second_job.result == 'success' && needs.should_not_fail.result != 'failure' }}
     steps:
       - name: I am the fourth
         run: |
