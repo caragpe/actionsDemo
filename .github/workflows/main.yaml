@@ -55,7 +55,7 @@ jobs:
     needs:
       - second_job
       - should_be_skipped
-    if: ${{ needs.should_be_skipped.result == 'skipped' }}
+    if: ${{ always() && needs.should_be_skipped.result == 'skipped' }}
     steps:
       - name: I am the fourth
         run: |
