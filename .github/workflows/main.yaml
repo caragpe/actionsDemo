@@ -52,7 +52,6 @@ jobs:
           echo "I am going rogue"
   fourth_job:
     runs-on: ubuntu-latest
-    needs: should_be_skipped
     if: ${{ needs.should_be_skipped.result == 'skipped' }}
     steps:
       - name: I am the fourth
