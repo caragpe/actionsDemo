@@ -36,9 +36,8 @@ jobs:
         id: smoke_tests
         run: |
           echo "Running tests"
-          echo "Received input: "
-          echo " - TestResult is ${{ inputs.test_result }}"
-          echo " - ForceDeployment is ${{ inputs.force_deployment }}"
+          echo "::notice ::- TestResult is ${{ inputs.test_result }}"
+          echo "::notice :: - ForceDeployment is ${{ inputs.force_deployment }}"
           if [ "${{ inputs.test_result }}" == 'passing' ]; then
             exit 0
           fi
