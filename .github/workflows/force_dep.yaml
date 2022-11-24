@@ -5,7 +5,7 @@ on:
       force_deployment:
         description: 'Override safeguards and allows deployment to PROD'
         required: true
-        default: 'force'
+        default: 'do_not_force'
         type: choice
         options:
           - force
