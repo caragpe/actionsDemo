@@ -1,0 +1,66 @@
+name: Force PROD deployment
+on:
+  workflow_dispatch:
+    inputs:
+      force_deployment:
+        description: 'Override safeguards and allows deployment to PROD'
+        required: true
+        default: 'no'
+        type: choice
+        options:
+          - yes
+          - no
+
+jobs:
+  deploy:
+    runs-on: ['linux', 'premium']
+    steps:
+      - name: Deploy
+        run: |
+          echo "This is the deployment to STG happening here..."
+  e2e_smoke_tests:
+    outputs:
+      tests_output: ${{ steps.set_output.outputs.smoke_results }}
+    runs-on: ['linux', 'premium']
+    needs: [deploy]
+    steps:
+      - name: Running e2e smoke tests
+        id: smoke_tess
+        run: |
+          echo 'Running tests'
+          exit 0
+      - name: Set output
+        id: set_output
+        run: |
+          echo "smoke_results=${{ steps.smoke_tess.outcome }}" >> $GITHUB_OUTPUT
+  force_deployment:
+    outputs:
+      manual_override: ${{ steps.set_output.outputs.manual_override }}
+    runs-on: ['linux', 'premium']
+    needs: [e2e_smoke_tests]
+    if: ${{ failure() && inputs.force_deployment == 'yes' }}
+    steps:
+      - name: Announcement
+        run: |
+          echo "Manually overriding the results of E2E smokes to allow deployment to PROD by ${{ github.actor }}"
+      - name: Set output
+        id: set_output
+        if: always()
+        run: |
+          echo "manual_override=yes" >> $GITHUB_OUTPUT
+  update_ssm:
+    runs-on: ['linux', 'premium']
+    needs: [force_deployment]
+    if:
+      always() &&
+      ( needs.force_deployment.outputs.manual_override == 'yes' || needs.e2e_smoke_tests.result != 'failure')
+    steps:
+      - name: ssm
+        run: |
+          if [ -z "${{ needs.manual_3.outputs.manual_overwrite }}" ]; then
+            echo "Regular deployment. No manual overwrite"
+          elif [  "${{ needs.manual_3.outputs.manual_overwrite }}" == "yes" ]; then
+            echo "Forced deployment to PROD was authorized by ${{ github.actor }}"
+          else
+            echo "Error!"
+          fi
