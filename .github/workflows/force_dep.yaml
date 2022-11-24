@@ -10,6 +10,14 @@ on:
         options:
           - yes
           - no
+      test_result:
+        description: 'Desired result for E2E smoke tests'
+        required: true
+        default: 'passing'
+        type: choice
+        options:
+          - passing
+          - failing
 
 jobs:
   deploy:
@@ -25,12 +33,16 @@ jobs:
     needs: [deploy]
     steps:
       - name: Running e2e smoke tests
-        id: smoke_tess
+        id: smoke_tests
         run: |
           echo 'Running tests'
-          exit 0
+          if [ "${{ inputs.test_result }}" == 'passing' ]; then
+            exit 0
+          fi
+          exit 1
       - name: Set output
         id: set_output
+        if: always()
         run: |
           echo "smoke_results=${{ steps.smoke_tess.outcome }}" >> $GITHUB_OUTPUT
   force_deployment:
