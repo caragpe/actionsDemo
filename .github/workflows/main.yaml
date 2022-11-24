@@ -6,7 +6,7 @@ on:
       - test-workflow
 jobs:
   deploy:
-    runs-on: ['linux']
+    runs-on: ['ubuntu-latest']
     steps:
       - name: Deploy
         run: |
@@ -14,7 +14,7 @@ jobs:
   tests_fail:
     outputs:
       tests_output: ${{ steps.set_output.outputs.tests_output }}
-    runs-on: ['linux']
+    runs-on: ['ubuntu-latest']
     needs:
       - deploy
     steps:
@@ -31,7 +31,7 @@ jobs:
   manual_1:
     outputs:
       manual_output: ${{ steps.set_output.outputs.manual_output }}
-    runs-on: ['linux']
+    runs-on: ['ubuntu-latest']
     needs:
       - tests_fail
     if: failure()
@@ -46,7 +46,7 @@ jobs:
           echo "manual_output=failure" >> $GITHUB_OUTPUT
   ssm_if_failing_tests:
     if: ${{ always() && needs.manual_1.outputs.manual_output != 'failure' }}
-    runs-on: ['linux']
+    runs-on: ['ubuntu-latest']
     needs:
       - manual_1
       - tests_fail
@@ -59,7 +59,7 @@ jobs:
   test_success:
     outputs:
       tests_output: ${{ steps.set_output.outputs.tests_output }}
-    runs-on: ['linux']
+    runs-on: ['ubuntu-latest']
     needs:
       - deploy
     steps:
@@ -76,7 +76,7 @@ jobs:
   manual_2:
     outputs:
       manual_output: ${{ steps.set_output.outputs.manual_output }}
-    runs-on: ['linux']
+    runs-on: ['ubuntu-latest']
     needs:
       - test_success
     if: failure()
@@ -91,7 +91,7 @@ jobs:
           echo "manual_output=failure" >> $GITHUB_OUTPUT
   ssm_if_success_tests:
     if: ${{ always() && needs.manual_2.outputs.manual_output != 'failure' }}
-    runs-on: ['linux']
+    runs-on: ['ubuntu-latest']
     needs:
       - manual_2
       - test_success
@@ -104,7 +104,7 @@ jobs:
 test_success:
   outputs:
     tests_output: ${{ steps.set_output.outputs.tests_output }}
-  runs-on: ['linux']
+  runs-on: ['ubuntu-latest']
   needs:
     - deploy
   steps:
@@ -121,7 +121,7 @@ test_success:
   manual_2:
     outputs:
       manual_output: ${{ steps.set_output.outputs.manual_output }}
-    runs-on: ['linux']
+    runs-on: ['ubuntu-latest']
     needs:
       - test_success
     if: failure()
@@ -136,7 +136,7 @@ test_success:
           echo "manual_output=failure" >> $GITHUB_OUTPUT
   ssm_if_skippedtests:
     if: ${{ always() && needs.manual_3.outputs.manual_output != 'failure' }}
-    runs-on: ['linux']
+    runs-on: ['ubuntu-latest']
     needs:
       - manual_3
       - test_success
@@ -148,7 +148,7 @@ test_success:
 #  tests_success:
 #    outputs:
 #      status: $${{ steps.set_output.outputs.status }}
-#    runs-on: ['linux']
+#    runs-on: ['ubuntu-latest']
 #    needs:
 #      - deploy
 #    steps:
@@ -163,7 +163,7 @@ test_success:
 #        run: |
 #          echo "status=$${{ steps.tests.outcome }}" >> $GITHUB_OUTPUT
 #  manual_2:
-#    runs-on: ['linux']
+#    runs-on: ['ubuntu-latest']
 #    if: needs.tests_success.outputs.status == 'failure'
 #    outputs:
 #      status: ${{ steps.manual.outputs.output }}
@@ -176,7 +176,7 @@ test_success:
 #          echo "status='ok'" >> $GITHUB_OUTPUT
 #  ssm_if_ok_tests:
 #    if: $${{ always() && needs.manual_2.outputs.status != 'failure' }}
-#    runs-on: ['linux']
+#    runs-on: ['ubuntu-latest']
 #    needs:
 #      - manual_2
 #      - tests_success
@@ -188,7 +188,7 @@ test_success:
 #  tests_skipped:
 #    outputs:
 #      status: skipped
-#    runs-on: ['linux']
+#    runs-on: ['ubuntu-latest']
 #    needs:
 #      - deploy
 #    if: ${{ 1 == 0 }}
@@ -197,7 +197,7 @@ test_success:
 #        run: |
 #          echo success
 #  manual_3:
-#    runs-on: ['linux']
+#    runs-on: ['ubuntu-latest']
 #    if: needs.tests_skipped.status == 'fail'
 #    outputs:
 #      status: force
@@ -209,7 +209,7 @@ test_success:
 #          echo test
 #  ssm_if_skipped_tests:
 #    if: $${{ always() && needs.tests_skipped.result != 'failure' }}
-#    runs-on: ['linux']
+#    runs-on: ['ubuntu-latest']
 #    needs:
 #      - manual_3
 #      - tests_skipped
