@@ -1,81 +1,220 @@
-name: 'Test workflow'
-
-# **What it does**: Renders the content of every page and check all internal links.
-# **Why we have it**: To make sure all links connect correctly.
-# **Who does it impact**: Docs content.
-
+name: trigger
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
   push:
     branches:
-      - main
-  pull_request:
-
+      - test-workflow
 jobs:
-  first_job:
-    runs-on: ubuntu-latest
+  deploy:
+    runs-on: ['linux', 'premium']
     steps:
-      - name: First-job-A
+      - name: Deploy
         run: |
-          ls -al
-      - name: First-job-B
-        run: |
-          echo "Hello"
-  second_job:
-    runs-on: ubuntu-latest
-    needs: first_job
+          echo test
+  tests_fail:
+    outputs:
+      tests_output: ${{ steps.set_output.outputs.tests_output }}
+    runs-on: ['linux', 'premium']
+    needs:
+      - deploy
     steps:
-      - name: Second-job-A
+      - name: Tests
+        id: tests
         run: |
-          echo "Second"
-      - name: Create annotation for build error
-        run: |
-          echo "::error file=app.js,line=1::Missing semicolon"
+          echo 'This test is going to fail'
           exit 1
-  third_job:
-    runs-on: ubuntu-latest
-    needs: second_job
-    if: ${{ needs.second_job.result == 'success' }}
+      - name: Set output
+        id: set_output
+        if: always()
+        run: |
+          echo "tests_output=${{ steps.tests.outcome }}" >> $GITHUB_OUTPUT
+  manual_1:
+    outputs:
+      manual_output: ${{ steps.set_output.outputs.manual_output }}
+    runs-on: ['linux', 'premium']
+    needs:
+      - tests_fail
+    if: failure()
     steps:
-      - name: I am the third
+      - name: manual
         run: |
-          echo "I'm the third"
-      - name: Previous job status
+          echo test
+      - name: Set output
+        id: set_output
+        if: always()
         run: |
-          echo ${{ needs.second_job.result }}
-  should_not_fail:
-    runs-on: ubuntu-latest
-    needs: second_job
-    if: ${{ 1 == 2 }}
+          echo "manual_output=failure" >> $GITHUB_OUTPUT
+  ssm_if_failing_tests:
+    if: ${{ always() && needs.manual_1.outputs.manual_output != 'failure' }}
+    runs-on: ['linux', 'premium']
+    needs:
+      - manual_1
+      - tests_fail
     steps:
-      - name: I am not failing
+      - name: ssm
         run: |
-          echo "I am doing well"
+          echo test
+          echo Result is ${{ needs.manual_1.outputs.manual_output }}
 
-  fourth_job:
-    runs-on: ubuntu-latest
+  test_success:
+    outputs:
+      tests_output: ${{ steps.set_output.outputs.tests_output }}
+    runs-on: ['linux', 'premium']
     needs:
-      - should_not_fail
-    if: ${{ always() && needs.second_job.result == 'success' && needs.should_not_fail.result != 'failure' }}
+      - deploy
     steps:
-      - name: I am the fourth
+      - name: Tests
+        id: tests
         run: |
-          echo "Running because previous not failing"
-          echo ${{ needs.should_not_fail.result }}
-  should_fail:
-    runs-on: ubuntu-latest
-    needs: second_job
-    steps:
-      - name: I am not skipping
+          echo 'This test is going to pass'
+          exit 0
+      - name: Set output
+        id: set_output
+        if: always()
         run: |
-          echo "I am going rogue"
-          exit 1
-  fiftieth_job:
-    runs-on: ubuntu-latest
+          echo "tests_output=${{ steps.tests.outcome }}" >> $GITHUB_OUTPUT
+  manual_2:
+    outputs:
+      manual_output: ${{ steps.set_output.outputs.manual_output }}
+    runs-on: ['linux', 'premium']
     needs:
-      - should_fail
-    if: ${{ always() && needs.should_fail.result == 'skipped' }}
+      - test_success
+    if: failure()
     steps:
-      - name: I am the fiftieth
+      - name: manual
         run: |
-          echo "NOT Running because previous was NOT skipped"
+          echo test
+      - name: Set output
+        id: set_output
+        if: always()
+        run: |
+          echo "manual_output=failure" >> $GITHUB_OUTPUT
+  ssm_if_success_tests:
+    if: ${{ always() && needs.manual_2.outputs.manual_output != 'failure' }}
+    runs-on: ['linux', 'premium']
+    needs:
+      - manual_2
+      - test_success
+    steps:
+      - name: ssm
+        run: |
+          echo test
+          echo Result is ${{ needs.manual_2.outputs.manual_output }}
+
+test_success:
+  outputs:
+    tests_output: ${{ steps.set_output.outputs.tests_output }}
+  runs-on: ['linux', 'premium']
+  needs:
+    - deploy
+  steps:
+    - name: Tests
+      id: tests
+      run: |
+        echo 'This test is going to pass'
+        exit 0
+    - name: Set output
+      id: set_output
+      if: always()
+      run: |
+        echo "tests_output=${{ steps.tests.outcome }}" >> $GITHUB_OUTPUT
+  manual_2:
+    outputs:
+      manual_output: ${{ steps.set_output.outputs.manual_output }}
+    runs-on: ['linux', 'premium']
+    needs:
+      - test_success
+    if: failure()
+    steps:
+      - name: manual
+        run: |
+          echo test
+      - name: Set output
+        id: set_output
+        if: always()
+        run: |
+          echo "manual_output=failure" >> $GITHUB_OUTPUT
+  ssm_if_skippedtests:
+    if: ${{ always() && needs.manual_3.outputs.manual_output != 'failure' }}
+    runs-on: ['linux', 'premium']
+    needs:
+      - manual_3
+      - test_success
+    steps:
+      - name: ssm
+        run: |
+          echo test
+          echo Result is ${{ needs.manual_3.outputs.manual_output }}
+#  tests_success:
+#    outputs:
+#      status: $${{ steps.set_output.outputs.status }}
+#    runs-on: ['linux', 'premium']
+#    needs:
+#      - deploy
+#    steps:
+#      - name: Tests
+#        id: tests
+#        run: |
+#          echo 'This test is going to succeed'
+#          exit 0
+#      - name: Set output
+#        id: set_output
+#        if: always()
+#        run: |
+#          echo "status=$${{ steps.tests.outcome }}" >> $GITHUB_OUTPUT
+#  manual_2:
+#    runs-on: ['linux', 'premium']
+#    if: needs.tests_success.outputs.status == 'failure'
+#    outputs:
+#      status: ${{ steps.manual.outputs.output }}
+#    needs:
+#      - tests_success
+#    steps:
+#      - name: manual
+#        run: |
+#          echo test
+#          echo "status='ok'" >> $GITHUB_OUTPUT
+#  ssm_if_ok_tests:
+#    if: $${{ always() && needs.manual_2.outputs.status != 'failure' }}
+#    runs-on: ['linux', 'premium']
+#    needs:
+#      - manual_2
+#      - tests_success
+#    steps:
+#      - name: ssm
+#        run: |
+#          echo test
+#          echo Result is $${{ needs.manual_2.outputs.status }}
+#  tests_skipped:
+#    outputs:
+#      status: skipped
+#    runs-on: ['linux', 'premium']
+#    needs:
+#      - deploy
+#    if: ${{ 1 == 0 }}
+#    steps:
+#      - name: Tests
+#        run: |
+#          echo success
+#  manual_3:
+#    runs-on: ['linux', 'premium']
+#    if: needs.tests_skipped.status == 'fail'
+#    outputs:
+#      status: force
+#    needs:
+#      - tests_skipped
+#    steps:
+#      - name: manual
+#        run: |
+#          echo test
+#  ssm_if_skipped_tests:
+#    if: $${{ always() && needs.tests_skipped.result != 'failure' }}
+#    runs-on: ['linux', 'premium']
+#    needs:
+#      - manual_3
+#      - tests_skipped
+#    steps:
+#      - name: ssm
+#        run: |
+#          echo test
+#          echo Result is $${{ needs.tests_skipped.result }}
