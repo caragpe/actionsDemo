@@ -35,7 +35,10 @@ jobs:
       - name: Running e2e smoke tests
         id: smoke_tests
         run: |
-          echo 'Running tests'
+          echo "Running tests"
+          echo "Received input: "
+          echo " - TestResult is ${{ inputs.test_result }}"
+          echo " - ForceDeployment is ${{ inputs.force_deployment }}"
           if [ "${{ inputs.test_result }}" == 'passing' ]; then
             exit 0
           fi
@@ -44,7 +47,7 @@ jobs:
         id: set_output
         if: always()
         run: |
-          echo "smoke_results=${{ steps.smoke_tess.outcome }}" >> $GITHUB_OUTPUT
+          echo "smoke_results=${{ steps.smoke_tests.outcome }}" >> $GITHUB_OUTPUT
   force_deployment:
     outputs:
       manual_override: ${{ steps.set_output.outputs.manual_override }}
