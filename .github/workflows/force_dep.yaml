@@ -18,9 +18,14 @@ on:
         options:
           - passing
           - failing
+      false_true:
+        description: 'True or false'
+        default: true
+        type: boolean
 
 jobs:
   deploy:
+    if: inputs.force_deployment == 'force' && inputs.false_true == true
     runs-on: ['ubuntu-latest']
     steps:
       - name: Deploy
